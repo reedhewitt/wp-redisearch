@@ -76,6 +76,7 @@ class Admin {
   public static function indexStatusHtml() {
     $default_args = Settings::query_args();
     $default_args['posts_per_page'] = -1;
+    $default_args['fields'] = 'ids';
     $args = apply_filters( 'wp_redisearch_posts_args', $default_args);
 
     /**
