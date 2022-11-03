@@ -3,13 +3,13 @@ if ( ! defined( 'ABSPATH' ) ) {
   exit; // Exit if accessed directly.
 }
 
-use WPRedisearch\Settings;
-use WPRedisearch\WPRedisearch;
-use WPRedisearch\Features;
-use WPRedisearch\Redisearch\Setup;
-use WPRedisearch\RediSearch\Index;
+use WpRedisearch\Settings;
+use WpRedisearch\WpRedisearch;
+use WpRedisearch\Features;
+use FKRediSearch\Setup;
+use WpRediSearch\RediSearch\Index;
 
-// Add commant to wp-cli
+/// Add commant to wp-cli
 WP_CLI::add_command( 'redisearch', 'Redisearch_CLI' );
 
 /**
@@ -46,19 +46,23 @@ class Redisearch_CLI extends WP_CLI_Command {
       $info = $client->rawCommand('FT.INFO', [ $index_name ]);
 
 			WP_CLI::log( WP_CLI::colorize( '%G' . __( '===== Info =====', 'wp-redisearch' ) . '%N' ) );
-			foreach ($info as $key => $value) {
-				if ( gettype( $value ) == 'string' || gettype( $value ) == 'object' ) {
-					WP_CLI::line( $value );
-				} elseif ( gettype( $value ) == 'array' ) {
-					foreach ($value as $key => $sub_value) {
-						if ( gettype( $sub_value ) == 'string' || gettype( $sub_value ) == 'object' ) {
-							WP_CLI::line( $sub_value );
-						} elseif ( gettype( $sub_value ) == 'array' ) {
-							$child_value_print = '';
-							foreach ($sub_value as $key => $child_value) {
-								$child_value_print .= '  ' . $child_value;
+			if(!is_array($info)){
+				WP_CLI::line( $info );
+			} else {
+				foreach ($info as $key => $value) {
+					if ( gettype( $value ) == 'string' || gettype( $value ) == 'object' ) {
+						WP_CLI::line( $value );
+					} elseif ( gettype( $value ) == 'array' ) {
+						foreach ($value as $key => $sub_value) {
+							if ( gettype( $sub_value ) == 'string' || gettype( $sub_value ) == 'object' ) {
+								WP_CLI::line( $sub_value );
+							} elseif ( gettype( $sub_value ) == 'array' ) {
+								$child_value_print = '';
+								foreach ($sub_value as $key => $child_value) {
+									$child_value_print .= '  ' . $child_value;
+								}
+								WP_CLI::line( '   -' . $child_value_print );
 							}
-							WP_CLI::line( '   -' . $child_value_print );
 						}
 					}
 				}
@@ -85,7 +89,8 @@ class Redisearch_CLI extends WP_CLI_Command {
 		// First of all, deletes index
 		$this->drop_index( $args, $assoc_args );
 
-		$index = new Index( WPRedisearch::$client );
+		$client = Setup::connect();
+		$index = new Index( $client );
 		$result = $index->create();
 		
 		if ( $result ) {
@@ -109,7 +114,8 @@ class Redisearch_CLI extends WP_CLI_Command {
 		$this->_connect_check();
 
 		WP_CLI::line( __( 'Dropping index...', 'wp-redisearch' ) );
-		$index = new Index( WPRedisearch::$client );
+		$client = Setup::connect();
+		$index = new Index( $client );
 		$result = $index->drop();
 		if ( $result ) {
 			WP_CLI::success( __( 'Index dropped', 'wp-redisearch' ) );
@@ -289,7 +295,8 @@ class Redisearch_CLI extends WP_CLI_Command {
 		 */
 		$query = new WP_Query();
 
-		$index = new Index( WPRedisearch::$client );
+		$client = Setup::connect();
+		$index = new Index( $client );
 
 		while ( true ) {
 
@@ -314,9 +321,9 @@ class Redisearch_CLI extends WP_CLI_Command {
 					$indexing_options = array();
 					$index_name = Settings::indexName();
 					$indexing_options['language'] = apply_filters( 'wp_redisearch_index_language', 'english', get_the_ID() );
-					$indexing_options['fields'] = $index->prepare_post( get_the_ID() );
+					$indexing_options['fields'] = $index->preparePost( get_the_ID() );
 				
-					$result = $index->addPosts($index_name, get_the_ID(), $indexing_options);
+					$result = $index->addPosts(get_the_ID(), $indexing_options);
 					$this->reset_transient();
 
 					do_action( 'wp_redisearch_cli_post_index', get_the_ID() );
@@ -560,9 +567,9 @@ class Redisearch_CLI extends WP_CLI_Command {
 	 * @since 0.2.0
 	 */
 	private function _connect_check() {
-		if ( WPRedisearch::$serverException ) {
+		if ( WpRedisearch::$serverException ) {
 			WP_CLI::error( __( 'Redis server is not running.', 'wp-redisearch' ) );
-		} elseif ( WPRedisearch::$moduleException ) {
+		} elseif ( WpRedisearch::$moduleException ) {
 			WP_CLI::error( __( 'Redis server is running but RediSearch module is not loaded.', 'wp-redisearch' ) );
 		}
 	}

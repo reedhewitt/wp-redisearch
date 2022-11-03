@@ -120,7 +120,10 @@ class WpRediSearch {
         $loaded_modules = $this->client->rawCommand('MODULE', ['LIST']);
         if ( isset( $loaded_modules ) && !empty( $loaded_modules ) ) {
           foreach ($loaded_modules as $module) {
-            if ( !in_array( 'search', $module ) ) {
+            if ( in_array( 'search', $module ) ) {
+              self::$moduleException = false;
+              break;
+            } else {
               self::$moduleException = true;
             }
           }
