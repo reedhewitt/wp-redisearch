@@ -104,6 +104,8 @@ class Redisearch_CLI extends WP_CLI_Command {
 		$database = defined('REDISEARCH_DB_NUMBER') ? REDISEARCH_DB_NUMBER : 0;
 		
 		$client = Setup::connect(Settings::RedisServer(), Settings::RedisPort(), Settings::RedisPassword(), $database, Settings::RedisScheme());
+
+		$client = Setup::connect();
 		$index = new Index( $client );
 		$result = $index->create();
 		
@@ -130,6 +132,7 @@ class Redisearch_CLI extends WP_CLI_Command {
 		WP_CLI::line( __( 'Dropping index...', 'wp-redisearch' ) );
 		$database = defined('REDISEARCH_DB_NUMBER') ? REDISEARCH_DB_NUMBER : 0;
 		$client = Setup::connect(Settings::RedisServer(), Settings::RedisPort(), Settings::RedisPassword(), $database, Settings::RedisScheme());
+		$client = Setup::connect();
 		$index = new Index( $client );
 		$result = $index->drop();
 		if ( $result ) {
@@ -318,6 +321,8 @@ class Redisearch_CLI extends WP_CLI_Command {
 		
 		$database = defined('REDISEARCH_DB_NUMBER') ? REDISEARCH_DB_NUMBER : 0;
 		$client = Setup::connect(Settings::RedisServer(), Settings::RedisPort(), Settings::RedisPassword(), $database, Settings::RedisScheme());
+
+		$client = Setup::connect();
 		$index = new Index( $client );
 
 		while ( true ) {
