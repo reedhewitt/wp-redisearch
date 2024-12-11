@@ -48,7 +48,7 @@ class WooCommerce {
   public function setup () {
     add_filter( 'wp_redisearch_indexable_post_types', array( $this, 'indexable_post_type' ) );
     add_filter( 'wp_redisearch_indexable_meta_keys', array( $this, 'indexable_meta_keys' ) );
-    add_filter( 'wp_redisearch_indexable_temrs', array( $this, 'indexable_terms' ), 10, 2 );
+    // add_filter( 'wp_redisearch_indexable_terms', array( $this, 'indexable_terms' ), 10, 2 );
   }
     
 	/**
@@ -72,18 +72,18 @@ class WooCommerce {
   public function indexable_meta_keys( $meta ) {
     $indexable_keys = array_unique(
       array(
-        '_thumbnail_id',
+        // '_thumbnail_id',
         '_product_attributes',
-        '_wpb_vc_js_status',
-        '_swatch_type',
-        'total_sales',
-        '_downloadable',
-        '_virtual',
+        // '_wpb_vc_js_status',
+        // '_swatch_type',
+        // 'total_sales',
+        // '_downloadable',
+        // '_virtual',
         '_regular_price',
         '_sale_price',
-        '_tax_status',
-        '_tax_class',
-        '_purchase_note',
+        // '_tax_status',
+        // '_tax_class',
+        // '_purchase_note',
         '_featured',
         '_weight',
         '_length',
@@ -91,26 +91,26 @@ class WooCommerce {
         '_height',
         '_visibility',
         '_sku',
-        '_sale_price_dates_from',
-        '_sale_price_dates_to',
+        // '_sale_price_dates_from',
+        // '_sale_price_dates_to',
         '_price',
-        '_sold_individually',
-        '_manage_stock',
-        '_backorders',
-        '_stock',
-        '_upsell_ids',
-        '_crosssell_ids',
-        '_stock_status',
-        '_product_version',
-        '_product_tabs',
-        '_override_tab_layout',
-        '_suggested_price',
-        '_min_price',
-        '_customer_user',
-        '_variable_billing',
-        '_wc_average_rating',
-        '_product_image_gallery',
-        '_bj_lazy_load_skip_post',
+        // '_sold_individually',
+        // '_manage_stock',
+        // '_backorders',
+        // '_stock',
+        // '_upsell_ids',
+        // '_crosssell_ids',
+        // '_stock_status',
+        // '_product_version',
+        // '_product_tabs',
+        // '_override_tab_layout',
+        // '_suggested_price',
+        // '_min_price',
+        // '_customer_user',
+        // '_variable_billing',
+        // '_wc_average_rating',
+        // '_product_image_gallery',
+        // '_bj_lazy_load_skip_post',
         '_min_variation_price',
         '_max_variation_price',
         '_min_price_variation_id',
@@ -123,28 +123,28 @@ class WooCommerce {
         '_max_variation_sale_price',
         '_min_sale_price_variation_id',
         '_max_sale_price_variation_id',
-        '_default_attributes',
-        '_swatch_type_options',
-        '_order_key',
-        '_billing_company',
-        '_billing_address_1',
-        '_billing_address_2',
-        '_billing_city',
-        '_billing_postcode',
-        '_billing_country',
-        '_billing_state',
-        '_billing_email',
-        '_billing_phone',
-        '_shipping_address_1',
-        '_shipping_address_2',
-        '_shipping_city',
-        '_shipping_postcode',
-        '_shipping_country',
-        '_shipping_state',
-        '_billing_last_name',
-        '_billing_first_name',
-        '_shipping_first_name',
-        '_shipping_last_name',
+        // '_default_attributes',
+        // '_swatch_type_options',
+        // '_order_key',
+        // '_billing_company',
+        // '_billing_address_1',
+        // '_billing_address_2',
+        // '_billing_city',
+        // '_billing_postcode',
+        // '_billing_country',
+        // '_billing_state',
+        // '_billing_email',
+        // '_billing_phone',
+        // '_shipping_address_1',
+        // '_shipping_address_2',
+        // '_shipping_city',
+        // '_shipping_postcode',
+        // '_shipping_country',
+        // '_shipping_state',
+        // '_billing_last_name',
+        // '_billing_first_name',
+        // '_shipping_first_name',
+        // '_shipping_last_name',
       )
     );
 
@@ -160,17 +160,22 @@ class WooCommerce {
    * @return  array
 	 */
   public function indexable_terms ( $terms, $post ) {
-    $wc_taxonomies = array( 'product_type', 'product_visibility', );
+    $wc_taxonomies = [
+      // 'product_type',
+      // 'product_visibility',
+      'product_cat',
+      'product_tag'
+    ];
 
-    if ( $attribute_taxonomies = wc_get_attribute_taxonomies() ) {
-      foreach ( $attribute_taxonomies as $tax ) {
-        if ( $name = wc_attribute_taxonomy_name( $tax->attribute_name ) ) {
-          if ( empty( $tax->attribute_) ) {
-            $wc_taxonomies[] = $name;
-          }
-        }
-      }
-    }
+    // if ( $attribute_taxonomies = wc_get_attribute_taxonomies() ) {
+    //   foreach ( $attribute_taxonomies as $tax ) {
+    //     if ( $name = wc_attribute_taxonomy_name( $tax->attribute_name ) ) {
+    //       if ( empty( $tax->attribute_) ) {
+    //         $wc_taxonomies[] = $name;
+    //       }
+    //     }
+    //   }
+    // }
 
     return array_merge( $terms, $wc_taxonomies );
   }
@@ -217,7 +222,7 @@ class WooCommerce {
 	 */
   public function feature_desc () {
     ?>
-      <p><?php esc_html_e( 'Finding products more faster and more precise regardless of buyers misspelling, means more success for your business.', 'wp-redisearch' ) ?></p>
+      <p><?php esc_html_e( 'Finding products faster and more precisely (regardless of buyers\' misspelling) means more success for your business.', 'wp-redisearch' ) ?></p>
     <?php
   }
 

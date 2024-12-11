@@ -14,11 +14,12 @@ class Client {
    * @since    1.0.0
    */
   public function __construct() {
+    $database = defined('REDISEARCH_DB_NUMBER') ? REDISEARCH_DB_NUMBER : 0;
     $this->client = Setup::connect(
       Settings::RedisServer(),
       Settings::RedisPort(),
       Settings::RedisPassword(),
-      0,
+      $database,
       Settings::RedisScheme()
     );
   }

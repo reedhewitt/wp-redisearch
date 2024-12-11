@@ -33,7 +33,7 @@ class Index {
   }
 
   /**
-  * Create connection to redis server.
+  * Create a new index.
   * @since    0.1.0
   * @param
   * @return
@@ -81,32 +81,32 @@ class Index {
       'post_content'    => array(
         'type'            => 'TEXT'
       ),
-      'post_content_filtered'  => array(
-        'type'            => 'TEXT'
-      ),
-      'post_excerpt'    => array(
-        'type'            => 'TEXT'
-      ),
+      // 'post_content_filtered'  => array(
+      //   'type'            => 'TEXT'
+      // ),
+      // 'post_excerpt'    => array(
+      //   'type'            => 'TEXT'
+      // ),
       'post_type'       => array(
         'type'            =>'TEXT'
       ),
-      'post_author'     => array(
-        'type'            => 'TEXT'
-      ),
+      // 'post_author'     => array(
+      //   'type'            => 'TEXT'
+      // ),
       'post_id'         => array(
         'type'            => 'NUMERIC',
         'sortable'        => TRUE
       ),
-      'menu_order'      => array(
-        'type'            => 'NUMERIC'
-      ),
-      'permalink'       => array(
-        'type'            => 'TEXT'
-      ),
-      'post_date'       => array(
-        'type'            => 'NUMERIC',
-        'sortable'        => TRUE
-      )
+      // 'menu_order'      => array(
+      //   'type'            => 'NUMERIC'
+      // ),
+      // 'permalink'       => array(
+      //   'type'            => 'TEXT'
+      // ),
+      // 'post_date'       => array(
+      //   'type'            => 'NUMERIC',
+      //   'sortable'        => TRUE
+      // )
     );
 
 		/**
@@ -136,6 +136,8 @@ class Index {
     $metaSchema = apply_filters( 'wp_redisearch_indexable_meta_schema', $metaSchema, $indexableMetaKeys );
 
     $indexableTerms = array_keys( Settings::get( 'wp_redisearch_indexable_terms', array() ) );
+    $indexableTerms = apply_filters( 'wp_redisearch_indexable_terms', $indexableTerms, null );
+    
     $termsSchema = array();
     if ( isset( $indexableTerms ) && !empty( $indexableTerms ) ) {
       foreach ($indexableTerms as $term) {
@@ -207,6 +209,17 @@ class Index {
 		 */
     do_action( 'wp_redisearch_after_index_created', $this->client);
 
+    return $this;
+  }
+
+  /**
+  * Drop the existing index.
+  * @since    0.1.0
+  * @param
+  * @return
+  */
+  public function drop() {
+    $this->index->drop();
     return $this;
   }
 
@@ -318,15 +331,15 @@ class Index {
 
 		$post_args = array(
 		  'post_id'           => $post->ID,
-      'post_author'       => $user_data,
-      'post_date'         => strtotime( $post_date ),
+      // 'post_author'       => $user_data,
+      // 'post_date'         => strtotime( $post_date ),
       'post_title'        => $post->post_title,
-      'post_excerpt'      => $post->post_excerpt,
-      'post_content_filtered' => wp_strip_all_tags( apply_filters( 'the_content', $post->post_content ), true ),
+      // 'post_excerpt'      => $post->post_excerpt,
+      // 'post_content_filtered' => wp_strip_all_tags( apply_filters( 'the_content', $post->post_content ), true ),
 			'post_content'      => wp_strip_all_tags( $post->post_content, true ),
 			'post_type'         => $post->post_type,
-			'permalink'         => get_permalink( $post->ID ),
-			'menu_order'        => absint( $post->menu_order )
+			// 'permalink'         => get_permalink( $post->ID ),
+			// 'menu_order'        => absint( $post->menu_order )
     );
     
     $post_terms = apply_filters( 'wp_redisearch_prepared_terms', $this->prepare_terms( $post ), $post );
@@ -351,15 +364,15 @@ class Index {
     $indexableTerms = isset( $indexableTerms ) ? array_keys( $indexableTerms ) : array();
 
     /**
-     * Filter wp_redisearch_indexable_temrs to manipulate indexable terms list
+     * Filter wp_redisearch_indexable_terms to manipulate indexable terms list
      * 
      * @since 0.2.1
      * @param array $indexableTerms        Default terms list
      * @param array $post                   The post object
      * @return array $indexableTerms       Modified taxobomy terms list
      */
-		$indexableTerms = apply_filters( 'wp_redisearch_indexable_temrs', $indexableTerms, $post );
-
+		$indexableTerms = apply_filters( 'wp_redisearch_indexable_terms', $indexableTerms, $post );
+    
 		if ( empty( $indexableTerms ) ) {
 			return array();
 		}
@@ -381,7 +394,7 @@ class Index {
       $terms_dic = implode( ',', $terms_dic );
 			$terms[$taxonomy] = ltrim( $terms_dic );
 		}
-
+    
 		return $terms;
 	}
 
@@ -411,7 +424,8 @@ class Index {
 		foreach( $post_meta as $key => $value ) {
       if ( in_array( $key, $indexableMetaKeys ) ) {
         $extracted_value = maybe_unserialize( $value[0] );
-        $prepared_meta[$key] = is_array( $extracted_value ) ? json_encode( maybe_unserialize( $value[0] ) ) : $extracted_value;
+        $prepared_value = is_array( $extracted_value ) ? json_encode( maybe_unserialize( $value[0] ) ) : $extracted_value;
+        $prepared_meta[$key] = apply_filters('wp_redisearch_prepared_meta_value', $prepared_value);
 			}
 		}
 

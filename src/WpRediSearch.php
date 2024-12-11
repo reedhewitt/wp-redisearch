@@ -120,7 +120,10 @@ class WpRediSearch {
         $loaded_modules = $this->client->rawCommand('MODULE', ['LIST']);
         if ( isset( $loaded_modules ) && !empty( $loaded_modules ) ) {
           foreach ($loaded_modules as $module) {
-            if ( !in_array( 'search', $module ) ) {
+            if ( in_array( 'search', $module ) ) {
+              self::$moduleException = false;
+              break;
+            } else {
               self::$moduleException = true;
             }
           }
@@ -274,12 +277,27 @@ class WpRediSearch {
     if ( isset( $query->query_vars['paged'] ) && $query->query_vars['paged'] > 1 ) {
       $from = $query->query_vars['posts_per_page'] * ( $query->query_vars['paged'] - 1 );
     }
+    
+    $redis_query_string = apply_filters('wp_redisearch_query_string', $query->query_vars['s']);
+    
+    // if(get_current_user_id() == 233){
+    //   echo '<pre>';
+    //   var_dump($redis_query_string);
+    //   echo '</pre>';
+    // }
+    
     $results = $search
-      ->limit( $from, $offset )
+      ->limit( 0, 10000 )
       ->return( array( 'post_id' ) )
-      ->search( $query->query_vars['s'] );
+      ->search( $redis_query_string );
     $searchResults = $results->getDocuments();
-
+    
+    // if(get_current_user_id() == 233){
+    //   echo '<pre>';
+    //   var_dump($searchResults);
+    //   echo '</pre>';
+    // }
+    
     $searchCount = $results->getCount();
     
     if ( $searchCount == 0 ) {
@@ -288,13 +306,16 @@ class WpRediSearch {
     }
 
     $searchResults = array_map( function( $res ) {
-      return $res->post_id;
+      return (int) $res->post_id;
     }, $searchResults );
+    
     $args = array(
-      'post_type'     => 'any',
-      'post_status'   => 'any',
-      'orderby'       => 'post__in',
-      'post__in'      => $searchResults
+      'posts_per_page' => $query->query_vars['posts_per_page'],
+      'paged'          => $query->query_vars['paged'],
+      'post_type'      => 'any',
+      'post_status'    => 'any',
+      'orderby'        => 'post__in',
+      'post__in'       => $searchResults,
     );
 
     /**
@@ -320,9 +341,9 @@ class WpRediSearch {
     $query = apply_filters( 'wp_redisearch_after_search_wp_query', $query, $searched_posts, $args );
     
     $this->searchQueryPosts = $searched_posts->posts;
-    $query->found_posts = $searchCount;
+    $query->found_posts = $searched_posts->found_posts;
     $query->redisearch_success = true;
-    $query->max_num_pages = ceil( $searchCount / $query->get( 'posts_per_page' ) );
+    $query->max_num_pages = ceil( $query->found_posts / $query->get( 'posts_per_page' ) );
 
     
     return "SELECT * FROM $wpdb->posts WHERE 1=0";
