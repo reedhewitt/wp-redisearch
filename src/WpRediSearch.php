@@ -312,7 +312,7 @@ class WpRediSearch {
     $args = array(
       'posts_per_page' => $query->query_vars['posts_per_page'],
       'paged'          => $query->query_vars['paged'],
-      'post_type'      => 'any',
+      'post_type'      => 'product',
       'post_status'    => 'any',
       'orderby'        => 'post__in',
       'post__in'       => $searchResults,
